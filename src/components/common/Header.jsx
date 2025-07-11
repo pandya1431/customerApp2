@@ -48,6 +48,7 @@ const Header = ({ onSearchChange }) => {
           <div className="flex items-center">
             <span className="hidden sm:inline">Delivering to Mumbai 400001</span>
             <span className="sm:hidden">Mumbai 400001</span>
+            <Link to="/">
               <h1 className="text-2xl font-bold text-emerald-600">Grooso</h1>
               <p className="text-xs text-gray-500 -mt-1">Shop Local</p>
             </Link>
