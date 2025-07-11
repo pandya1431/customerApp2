@@ -767,12 +767,12 @@ const AccountPage = () => {
           </div>
 
           {/* Sidebar - Desktop */}
-          <div className="hidden md:block w-1/4 bg-white shadow-sm border-r min-h-screen">
+          <div className="w-full md:w-1/4 bg-white shadow-sm border-r md:min-h-screen">
             {/* Profile Header */}
-            <div className="p-6 border-b">
+            <div className="p-4 md:p-6 border-b">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
-                  <User className="w-8 h-8 text-emerald-600" />
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 md:w-8 md:h-8 text-emerald-600" />
                 </div>
                 <div>
                   <h2 className="font-semibold text-gray-900">{user?.name || 'John Doe'}</h2>
