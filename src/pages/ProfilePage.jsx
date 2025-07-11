@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Calendar, Edit, Save, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
@@ -7,17 +8,52 @@ const ProfilePage = () => {
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    dateOfBirth: user?.dateOfBirth || '',
-    gender: user?.gender || ''
+    name: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: ''
   });
+
+  // Sync formData with user data when user changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        dateOfBirth: user.dateOfBirth || '',
+        gender: user.gender || ''
+      });
+    }
+  }, [user]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSave = () => {
     // Validate form
     if (!formData.name || !formData.email || !formData.phone) {
       toast.error('Please fill all required fields');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    // Phone validation (basic)
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+      toast.error('Please enter a valid phone number');
       return;
     }
 
@@ -28,15 +64,32 @@ const ProfilePage = () => {
   };
 
   const handleCancel = () => {
-    setFormData({
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: user?.phone || '',
-      dateOfBirth: user?.dateOfBirth || '',
-      gender: user?.gender || ''
-    });
+    // Reset form data to original user data
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        dateOfBirth: user.dateOfBirth || '',
+        gender: user.gender || ''
+      });
+    }
     setIsEditing(false);
   };
+
+  // Show loading state if user data is not available
+  if (!user) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-gray-200 border-t-emerald-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -54,8 +107,8 @@ const ProfilePage = () => {
                 <User className="w-8 h-8 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">{user?.name}</h2>
-                <p className="text-gray-600">{user?.email}</p>
+                <h2 className="text-xl font-semibold text-gray-900">{formData.name || 'User'}</h2>
+                <p className="text-gray-600">{formData.email || 'No email provided'}</p>
               </div>
             </div>
             {!isEditing ? (
@@ -98,14 +151,16 @@ const ProfilePage = () => {
               {isEditing ? (
                 <input
                   type="text"
+                  name="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder="Enter your full name"
                 />
               ) : (
                 <div className="flex items-center space-x-2 py-2">
                   <User className="w-4 h-4 text-gray-400" />
-                  <span>{user?.name || 'Not provided'}</span>
+                  <span>{formData.name || 'Not provided'}</span>
                 </div>
               )}
             </div>
@@ -118,14 +173,16 @@ const ProfilePage = () => {
               {isEditing ? (
                 <input
                   type="email"
+                  name="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder="Enter your email address"
                 />
               ) : (
                 <div className="flex items-center space-x-2 py-2">
                   <Mail className="w-4 h-4 text-gray-400" />
-                  <span>{user?.email || 'Not provided'}</span>
+                  <span>{formData.email || 'Not provided'}</span>
                 </div>
               )}
             </div>
@@ -138,14 +195,16 @@ const ProfilePage = () => {
               {isEditing ? (
                 <input
                   type="tel"
+                  name="phone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  placeholder="Enter your phone number"
                 />
               ) : (
                 <div className="flex items-center space-x-2 py-2">
                   <Phone className="w-4 h-4 text-gray-400" />
-                  <span>{user?.phone || 'Not provided'}</span>
+                  <span>{formData.phone || 'Not provided'}</span>
                 </div>
               )}
             </div>
@@ -158,14 +217,15 @@ const ProfilePage = () => {
               {isEditing ? (
                 <input
                   type="date"
+                  name="dateOfBirth"
                   value={formData.dateOfBirth}
-                  onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               ) : (
                 <div className="flex items-center space-x-2 py-2">
                   <Calendar className="w-4 h-4 text-gray-400" />
-                  <span>{user?.dateOfBirth || 'Not provided'}</span>
+                  <span>{formData.dateOfBirth || 'Not provided'}</span>
                 </div>
               )}
             </div>
@@ -177,8 +237,9 @@ const ProfilePage = () => {
               </label>
               {isEditing ? (
                 <select
+                  name="gender"
                   value={formData.gender}
-                  onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 >
                   <option value="">Select Gender</option>
@@ -189,7 +250,7 @@ const ProfilePage = () => {
                 </select>
               ) : (
                 <div className="py-2">
-                  <span>{user?.gender || 'Not provided'}</span>
+                  <span>{formData.gender || 'Not provided'}</span>
                 </div>
               )}
             </div>
