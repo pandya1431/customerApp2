@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   ShoppingCart, 
@@ -38,6 +38,14 @@ const AccountPage = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [isEditing, setIsEditing] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileFormData, setProfileFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    dateOfBirth: user?.dateOfBirth || '',
+    gender: user?.gender || ''
+  });
   
   // Profile form data
   const [profileData, setProfileData] = useState({
@@ -148,6 +156,17 @@ const AccountPage = () => {
 
   const [orderFilter, setOrderFilter] = useState('all');
 
+  // Update profile form data when user changes
+  useEffect(() => {
+    setProfileFormData({
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      dateOfBirth: user?.dateOfBirth || '',
+      gender: user?.gender || ''
+    });
+  }, [user]);
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -191,6 +210,37 @@ const AccountPage = () => {
       gender: user?.gender || ''
     });
     setIsEditing(false);
+  };
+
+  const handleProfileSave = () => {
+    // Validate form
+    if (!profileFormData.name || !profileFormData.email || !profileFormData.phone) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+
+    // Update user data
+    updateUser(profileFormData);
+    setIsEditingProfile(false);
+    toast.success('Profile updated successfully');
+  };
+
+  const handleProfileCancel = () => {
+    setProfileFormData({
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      dateOfBirth: user?.dateOfBirth || '',
+      gender: user?.gender || ''
+    });
+    setIsEditingProfile(false);
+  };
+
+  const handleProfileChange = (field, value) => {
+    setProfileFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleAddAddress = () => {
@@ -406,9 +456,9 @@ const AccountPage = () => {
                       <p className="text-gray-600">{user?.email}</p>
                     </div>
                   </div>
-                  {!isEditing ? (
-                    <button
-                      onClick={() => setIsEditing(true)}
+                  {!isEditingProfile ? (
+                    <button 
+                      onClick={() => setIsEditingProfile(true)}
                       className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
                     >
                       <Edit className="w-4 h-4" />
@@ -417,14 +467,14 @@ const AccountPage = () => {
                   ) : (
                     <div className="flex space-x-2">
                       <button
-                        onClick={handleSaveProfile}
+                        onClick={handleProfileSave}
                         className="flex items-center space-x-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
                       >
                         <Save className="w-4 h-4" />
                         <span>Save</span>
                       </button>
                       <button
-                        onClick={handleCancelEdit}
+                        onClick={handleProfileCancel}
                         className="flex items-center space-x-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
                       >
                         <X className="w-4 h-4" />
@@ -443,12 +493,13 @@ const AccountPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full Name *
                     </label>
-                    {isEditing ? (
+                    {isEditingProfile ? (
                       <input
                         type="text"
-                        value={profileData.name}
-                        onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                        value={profileFormData.name}
+                        onChange={(e) => handleProfileChange('name', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        placeholder="Enter your full name"
                       />
                     ) : (
                       <div className="flex items-center space-x-2 py-2">
@@ -463,12 +514,13 @@ const AccountPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email Address *
                     </label>
-                    {isEditing ? (
+                    {isEditingProfile ? (
                       <input
                         type="email"
-                        value={profileData.email}
-                        onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                        value={profileFormData.email}
+                        onChange={(e) => handleProfileChange('email', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        placeholder="Enter your email"
                       />
                     ) : (
                       <div className="flex items-center space-x-2 py-2">
@@ -483,12 +535,13 @@ const AccountPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Phone Number *
                     </label>
-                    {isEditing ? (
+                    {isEditingProfile ? (
                       <input
                         type="tel"
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                        value={profileFormData.phone}
+                        onChange={(e) => handleProfileChange('phone', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        placeholder="Enter your phone number"
                       />
                     ) : (
                       <div className="flex items-center space-x-2 py-2">
@@ -503,17 +556,39 @@ const AccountPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Date of Birth
                     </label>
-                    {isEditing ? (
+                    {isEditingProfile ? (
                       <input
                         type="date"
-                        value={profileData.dateOfBirth}
-                        onChange={(e) => setProfileData({...profileData, dateOfBirth: e.target.value})}
+                        value={profileFormData.dateOfBirth}
+                        onChange={(e) => handleProfileChange('dateOfBirth', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       />
                     ) : (
                       <div className="flex items-center space-x-2 py-2">
                         <Calendar className="w-4 h-4 text-gray-400" />
                         <span>{user?.dateOfBirth || 'Not provided'}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Gender */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                    {isEditingProfile ? (
+                      <select
+                        value={profileFormData.gender}
+                        onChange={(e) => handleProfileChange('gender', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer-not-to-say">Prefer not to say</option>
+                      </select>
+                    ) : (
+                      <div className="py-2">
+                        <span>{user?.gender || 'Not provided'}</span>
                       </div>
                     )}
                   </div>
